@@ -1,4 +1,3 @@
-
 #include <cuda_runtime.h>
 #include <stdio.h>
 #include<iostream>
@@ -8,38 +7,9 @@
 
 #define ull unsigned long long int
 
-// __global__ void Convolute(int input_row, int input_col, int *input,
-// 		int kernel_row, int kernel_col, int *kernel,
-// 		int output_row, int output_col, ull *output
-// 		)
-// {
-// 	int total_cells = output_row * output_col;
-//         int start_cell = (blockIdx.x*blockDim.x + threadIdx.x);
-//         if(total_cells <= start_cell) 
-// 			return;
-//         int output_i = start_cell / output_col;
-// 	int output_j = start_cell % output_col;
-      
-//         for(int kernel_i = 0; kernel_i< kernel_row; kernel_i++)
-// 	{
-// 		for(int kernel_j = 0; kernel_j< kernel_col; kernel_j++)
-// 		{
-// 			int input_i = (output_i + 2*kernel_i) % input_row;
-// 			int input_j = (output_j + 2*kernel_j) % input_col;
-// 			output[output_i * output_col + output_j] += input[input_i * input_col +input_j] 
-// 				* kernel[kernel_i * kernel_col +kernel_j];
-// 			/*if(output_i==0 && output_j==0) {
-// 				printf("input[%d][%d]: %d\t", input_row, input_col, input[input_row * input_col + input_col]);
-// 				printf("output[%d][%d]: %ul\t", output_i, output_j, output[output_i * output_j + output_j]);
-// 				printf("kernel[%d][%d]: %d\t", kernel_i, kernel_j, kernel[kernel_i * kernel_j + kernel_j]);
-// 				printf("\n");
-//                         }*/
-// 		}
-// 	}
-// }
 __global__ void multiply( unsigned long long int * op_mn,  int rows,  int cols,  int *kernel,  int kernel_row,  int kernel_col,  int *mn,  int m_col){
 
-	int total_cells = rows * cols;
+    int total_cells = rows * cols;
     int start_cell = (blockIdx.x*blockDim.x + threadIdx.x);
         if(total_cells <= start_cell) 
 			return;
@@ -70,7 +40,6 @@ __global__ void multiply( unsigned long long int * op_mn,  int rows,  int cols, 
                    op_mn[output_i * cols + output_j] += mn[input_i * m_col + input_j] * kernel[kernel_i * kernel_col + kernel_j];
                }
            }
-       
 }
 
 // Fill in this function
@@ -115,8 +84,8 @@ void gpuThread(int input_row, int input_col, int *input,
    }
 
 
-   //[1][1]
-   //[1][1]
+//    [1][1]
+//    [1][1]
    for (int i = 0; i < padded_row; i++)
    {
        int padded_i = i * padded_col;
@@ -196,68 +165,53 @@ void gpuThread(int input_row, int input_col, int *input,
 
     cudaFree(0);
     cudaDeviceProp deviceProp;
-    cudaGetDeviceProperties(&deviceProp, 0);  // Assumes you have a single GPU device
-//     std::cout << "Number of SMs: " << deviceProp.multiProcessorCount << std::endl;
-//     std::cout << "Warp Size: " << deviceProp.warpSize << std::endl;
-//     std::cout << "Max Blocks per SM: " << deviceProp.maxBlocksPerMultiProcessor << std::endl;
-//     std::cout << "Max Threads per Block: " << deviceProp.maxThreadsPerBlock << std::endl;
-//     std::cout << "Max Threads per SM: " << deviceProp.maxThreadsPerMultiProcessor << std::endl;
+    cudaGetDeviceProperties(&deviceProp, 0);  
 
-	//copy data to device
-	int *dev_input1, *dev_kernel;
-	int *dev_input2;
-	int *dev_input3;
-	int *dev_input4;
-	ull *dev_output1;
-	ull *dev_output2;
-	ull *dev_output3;
-	ull *dev_output4;
-	cudaMalloc((void**)&dev_input1, sizeof(int) * even_row * even_col);
-	cudaMalloc((void**)&dev_input2, sizeof(int) * odd_row * even_col);
-	cudaMalloc((void**)&dev_input3, sizeof(int) * even_row * odd_col);
-	cudaMalloc((void**)&dev_input4, sizeof(int) * odd_row * odd_col);
-
-
-	cudaMalloc((void**)&dev_kernel, sizeof(int) * kernel_row * kernel_col);
-	cudaMalloc((void**)&dev_output1, sizeof(ull) * op_even_row * op_even_col);
-	cudaMalloc((void**)&dev_output2, sizeof(ull) * op_odd_row * op_even_col);
-	cudaMalloc((void**)&dev_output3, sizeof(ull) * op_even_row * op_odd_col);
-	cudaMalloc((void**)&dev_output4, sizeof(ull) * op_odd_row * op_odd_col);
-	cudaMemcpy(dev_input1, m1, sizeof(int) * even_row * even_col, cudaMemcpyHostToDevice);
-	cudaMemcpy(dev_input2, m2, sizeof(int) * odd_row * even_col, cudaMemcpyHostToDevice);
-	cudaMemcpy(dev_input3, m3, sizeof(int) * even_row * odd_col, cudaMemcpyHostToDevice);
-	cudaMemcpy(dev_input4, m4, sizeof(int) * odd_row * odd_col, cudaMemcpyHostToDevice);
-
-
-
-	//cudaMemcpy(dev_output, output, output_row*output_col, cudaMemcpyHostToDevice);
-	cudaMemcpy(dev_kernel, kernel, sizeof(int) * kernel_row*kernel_col, cudaMemcpyHostToDevice);
-	// Kernel invocation
-	//int max_gpu = fjfj
-		// int maxBlocks = deviceProp.multiProcessorCount * deviceProp.maxBlocksPerMultiProcessor;
-
+	int *d_input1, *d_kernel;
+	int *d_input2;
+	int *d_input3;
+	int *d_input4;
+	ull *d_output1;
+	ull *d_output2;
+	ull *d_output3;
+	ull *d_output4;
+	cudaMalloc((void**)&d_input1, sizeof(int) * even_row * even_col);
+	cudaMalloc((void**)&d_input2, sizeof(int) * odd_row * even_col);
+	cudaMalloc((void**)&d_input3, sizeof(int) * even_row * odd_col);
+	cudaMalloc((void**)&d_input4, sizeof(int) * odd_row * odd_col);
+    cudaMalloc((void**)&d_kernel, sizeof(int) * kernel_row * kernel_col);
+	cudaMalloc((void**)&d_output1, sizeof(ull) * op_even_row * op_even_col);
+	cudaMalloc((void**)&d_output2, sizeof(ull) * op_odd_row * op_even_col);
+	cudaMalloc((void**)&d_output3, sizeof(ull) * op_even_row * op_odd_col);
+	cudaMalloc((void**)&d_output4, sizeof(ull) * op_odd_row * op_odd_col);
+	cudaMemcpy(d_input1, m1, sizeof(int) * even_row * even_col, cudaMemcpyHostToDevice);
+	cudaMemcpy(d_input2, m2, sizeof(int) * odd_row * even_col, cudaMemcpyHostToDevice);
+	cudaMemcpy(d_input3, m3, sizeof(int) * even_row * odd_col, cudaMemcpyHostToDevice);
+	cudaMemcpy(d_input4, m4, sizeof(int) * odd_row * odd_col, cudaMemcpyHostToDevice);
+        cudaMemcpy(d_kernel, kernel, sizeof(int) * kernel_row*kernel_col, cudaMemcpyHostToDevice);
+	
         //m1
         int maxThreadsNeeded1 = op_even_row * op_even_col;
         int blocksWeCreate1 = ceil((double)maxThreadsNeeded1 / deviceProp.maxThreadsPerBlock);
         dim3 threadsPerBlock1(deviceProp.maxThreadsPerBlock);
-		dim3 numThreadBlocks1(blocksWeCreate1); //N / threadsPerBlock.x, N / threadsPerBlock.y)
-        multiply<<<numThreadBlocks1, threadsPerBlock1>>>(dev_output1, op_even_row, op_even_col, dev_kernel, kernel_row, kernel_col, dev_input1, even_col);
+		dim3 numThreadBlocks1(blocksWeCreate1); 
+        multiply<<<numThreadBlocks1, threadsPerBlock1>>>(d_output1, op_even_row, op_even_col, d_kernel, kernel_row, kernel_col, d_input1, even_col);
 
 
 		//m2
 		int maxThreadsNeeded2 = op_odd_row * op_even_col;
         int blocksWeCreate2 = ceil((double)maxThreadsNeeded2 / deviceProp.maxThreadsPerBlock);
         dim3 threadsPerBlock2(deviceProp.maxThreadsPerBlock);
-		dim3 numThreadBlocks2(blocksWeCreate2); //N / threadsPerBlock.x, N / threadsPerBlock.y)
-	   	multiply<<<numThreadBlocks2, threadsPerBlock2>>>(dev_output2, op_odd_row, op_even_col, dev_kernel, kernel_row, kernel_col, dev_input2, even_col);
+		dim3 numThreadBlocks2(blocksWeCreate2); 
+	   	multiply<<<numThreadBlocks2, threadsPerBlock2>>>(d_output2, op_odd_row, op_even_col, d_kernel, kernel_row, kernel_col, d_input2, even_col);
 
 
 		//m3
 		int maxThreadsNeeded3 = op_even_row * op_odd_col;
         int blocksWeCreate3 = ceil((double)maxThreadsNeeded3 / deviceProp.maxThreadsPerBlock);
         dim3 threadsPerBlock3(deviceProp.maxThreadsPerBlock);
-		dim3 numThreadBlocks3(blocksWeCreate3); //N / threadsPerBlock.x, N / threadsPerBlock.y)
-	   	multiply<<<numThreadBlocks3, threadsPerBlock3>>>(dev_output3, op_even_row, op_odd_col, dev_kernel, kernel_row, kernel_col, dev_input3, odd_col);
+		dim3 numThreadBlocks3(blocksWeCreate3); 
+	   	multiply<<<numThreadBlocks3, threadsPerBlock3>>>(d_output3, op_even_row, op_odd_col, d_kernel, kernel_row, kernel_col, d_input3, odd_col);
 
 
 		//m4
@@ -265,14 +219,13 @@ void gpuThread(int input_row, int input_col, int *input,
         int maxThreadsNeeded4 = op_odd_row * op_odd_col;
         int blocksWeCreate4 = ceil((double)maxThreadsNeeded4 / deviceProp.maxThreadsPerBlock);
         dim3 threadsPerBlock4(deviceProp.maxThreadsPerBlock);
-		dim3 numThreadBlocks4(blocksWeCreate4); //N / threadsPerBlock.x, N / threadsPerBlock.y)
-        //std::cout << "starting kernel\n";                                   
-   		multiply<<<numThreadBlocks4, threadsPerBlock4>>>(dev_output4, op_odd_row, op_odd_col, dev_kernel, kernel_row, kernel_col, dev_input4, odd_col);
+		dim3 numThreadBlocks4(blocksWeCreate4); 
+   		multiply<<<numThreadBlocks4, threadsPerBlock4>>>(d_output4, op_odd_row, op_odd_col, d_kernel, kernel_row, kernel_col, d_input4, odd_col);
  
-	cudaMemcpy(op_m1, dev_output1, sizeof(ull) * op_even_row*op_even_col, cudaMemcpyDeviceToHost);
-	cudaMemcpy(op_m2, dev_output2, sizeof(ull) * op_odd_row * op_even_col, cudaMemcpyDeviceToHost);
-	cudaMemcpy(op_m3, dev_output3, sizeof(ull) * op_even_row * op_odd_col, cudaMemcpyDeviceToHost);
-	cudaMemcpy(op_m4, dev_output4, sizeof(ull) * op_odd_row * op_odd_col, cudaMemcpyDeviceToHost);
+	cudaMemcpy(op_m1, d_output1, sizeof(ull) * op_even_row*op_even_col, cudaMemcpyDeviceToHost);
+	cudaMemcpy(op_m2, d_output2, sizeof(ull) * op_odd_row * op_even_col, cudaMemcpyDeviceToHost);
+	cudaMemcpy(op_m3, d_output3, sizeof(ull) * op_even_row * op_odd_col, cudaMemcpyDeviceToHost);
+	cudaMemcpy(op_m4, d_output4, sizeof(ull) * op_odd_row * op_odd_col, cudaMemcpyDeviceToHost);
 	
 	int x = 2 * output_col;
 
